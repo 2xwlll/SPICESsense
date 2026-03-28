@@ -182,6 +182,7 @@ Use it to identify things worth investigating: which events to study more carefu
 
 ### For Developers/Beyond the Website:
 
+'''Bash
 .
 ├── index.html              # Main tool (everything runs here)
 ├── index1.html             # Older / experimental version
@@ -196,6 +197,7 @@ Use it to identify things worth investigating: which events to study more carefu
 ├── LICENSE.md
 ├── README.md
 └── .venv/                  # Local Python environment (optional)
+'''
 
 How the Code Relates to the Website:
 
