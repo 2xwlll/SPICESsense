@@ -2,7 +2,7 @@ Quick Start (2 minutes)
 
 1. Download and open index.html
 2. Wait until it says “Python ready”
-3. Upload your CSV
+3. Upload your CSV (Official 2024 csv file in the sample_data folder)
 4. Click “Run Analysis”
 5. Read the top insights
 
