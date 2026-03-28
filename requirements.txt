@@ -1,6 +1,0 @@
-pandas
-numpy
-scikit-learn
-streamlit
-sentence-transformers    # optional but recommended for semantic matching
-

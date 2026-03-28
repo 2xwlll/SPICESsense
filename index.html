@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Honors Event Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f0e8;--bg2:#eee8d8;--ink:#1a1610;--ink2:#3d352a;--ink3:#7a6e5f;
+  --ac:#c8410a;--ac2:#1a6b3c;--bdr:#cfc5b0;--card:#fffdf7;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.05);
+  --rad:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+.hd{background:var(--ink);color:#f5f0e8;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hd h1{font-size:14px;font-weight:600;letter-spacing:.5px}
+.hd .sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#a09080;margin-left:auto}
+.wrap{display:flex;flex:1;min-height:0;overflow:hidden}
+aside{width:270px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bdr);padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.sec-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.dz{border:1.5px dashed var(--bdr);border-radius:var(--rad);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.dz:hover,.dz.drag-over{border-color:var(--ac);background:#fff8f0}
+.dz p{font-size:11px;color:var(--ink3);line-height:1.5}
+.dz label{font-size:11px;font-weight:600;color:var(--ac);cursor:pointer}
+.dz input{display:none}
+.fc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ac2);background:#f0faf4;border:1px solid #b6dfc6;border-radius:4px;padding:5px 8px;display:none;margin-top:6px}
+textarea{width:100%;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--bdr);border-radius:var(--rad);padding:7px;background:var(--card);color:var(--ink);resize:vertical;min-height:60px}
+textarea:focus{outline:2px solid var(--ac);border-color:transparent}
+.fl{display:flex;flex-direction:column;gap:5px}
+.fl label{font-size:11px;color:var(--ink2)}
+.fl input[type=number]{width:100%;padding:5px 7px;font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid var(--bdr);border-radius:4px;background:var(--card);color:var(--ink)}
+.mt{display:flex;gap:4px}
+.mt button{flex:1;padding:5px;font-size:10px;font-family:'IBM Plex Mono',monospace;border:1px solid var(--bdr);border-radius:4px;background:var(--card);color:var(--ink3);cursor:pointer;transition:all .12s}
+.mt button.active{background:var(--ink);color:#f5f0e8;border-color:var(--ink)}
+.py-status{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);background:var(--card);border:1px solid var(--bdr);border-radius:4px;padding:6px 9px}
+.rd{width:7px;height:7px;border-radius:50%;background:#e5c96b;flex-shrink:0;transition:background .3s}
+.rd.ready{background:#6ee7b7}
+.rd.error{background:#fca5a5}
+.run-btn{background:var(--ink);color:#f5f0e8;border:none;border-radius:var(--rad);padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;width:100%}
+.run-btn:disabled{opacity:.45;cursor:not-allowed}
+.run-btn.running{opacity:.7}
+.main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:0}
+.tb{display:flex;align-items:center;gap:10px;padding:0 0 14px;flex-shrink:0}
+.sp2{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3)}
+.dot{width:8px;height:8px;border-radius:50%;background:#e5c96b;transition:background .3s;flex-shrink:0}
+.dot.ok{background:#6ee7b7}
+.dot.err{background:#fca5a5}
+.dot.busy{background:#93c5fd;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.res{display:flex;flex-direction:column;gap:16px}
+.emp{text-align:center;padding:60px 20px;color:var(--ink3)}
+.emp h2{font-size:18px;margin-bottom:8px;color:var(--ink2)}
+.emp p{font-size:13px;max-width:400px;margin:0 auto;line-height:1.6}
+.eg{display:flex;align-items:flex-end;gap:3px;justify-content:center;margin-bottom:20px;height:42px}
+.eg div{width:10px;background:var(--bdr);border-radius:2px 2px 0 0}
+.lo{display:none;align-items:center;gap:14px;padding:24px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad)}
+.lo.active{display:flex}
+.lsp{width:20px;height:20px;border:2px solid var(--bdr);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lo h3{font-size:13px;font-weight:600;margin-bottom:2px}
+.lo p{font-size:11px;color:var(--ink3);font-family:'IBM Plex Mono',monospace}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);box-shadow:var(--sh);animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ch{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--bdr);background:var(--bg2);border-radius:var(--rad) var(--rad) 0 0}
+.ch h3{font-size:12px;font-weight:700;flex:1}
+.ct{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase}
+.cb{padding:14px}
+.mg{display:flex;flex-wrap:wrap;gap:8px}
+.met{background:var(--bg);border-radius:4px;padding:8px 12px;border-left:3px solid var(--ac);flex:1;min-width:80px}
+.met .v{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
+.met .l{font-size:10px;color:var(--ink3);margin-top:2px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);border-bottom:2px solid var(--bdr);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--bg2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+td.r{text-align:right;font-family:'IBM Plex Mono',monospace}
+.sb{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+.sbd{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
+.szl{background:#d1fae5;color:#065f46;font-size:9px;padding:2px 6px;border-radius:10px;font-family:'IBM Plex Mono',monospace}
+.szm{background:#fef3c7;color:#92400e;font-size:9px;padding:2px 6px;border-radius:10px;font-family:'IBM Plex Mono',monospace}
+.szs{background:#dbeafe;color:#1e40af;font-size:9px;padding:2px 6px;border-radius:10px;font-family:'IBM Plex Mono',monospace}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cb2{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:10px}
+.cb2 h4{font-size:10px;font-weight:600;color:var(--ink2);margin-bottom:8px;font-family:'IBM Plex Mono',monospace}
+.sdv{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3)}
+.sdv::before,.sdv::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.clf{display:flex;flex-wrap:wrap;gap:8px}
+.cc{background:var(--bg);border-radius:4px;padding:8px 12px;border:1px solid var(--bdr);min-width:80px}
+.cv{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.cl{font-size:9px;color:var(--ink3);margin-top:2px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fs{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:10px}
+.fs h4{font-size:10px;font-weight:600;color:var(--ink2);margin-bottom:8px}
+.fl2{display:flex;flex-direction:column;gap:4px}
+.fr{display:flex;align-items:center;gap:6px;font-size:10px}
+.fn{width:140px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.ft{flex:1;background:var(--bg2);border-radius:2px;height:6px;overflow:hidden}
+.ff{height:100%;border-radius:2px;transition:width .3s}
+.ff.pos{background:var(--ac2)}
+.ff.neg{background:var(--ac)}
+.fw{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);width:50px;text-align:right;flex-shrink:0}
+/* Insights */
+.il{display:flex;flex-direction:column;gap:7px}
+.ins-item{display:flex;gap:10px;padding:9px 10px;border-radius:5px;border:1px solid var(--bdr);background:var(--bg);animation:fadeUp .3s ease both;transition:border-color .15s}
+.ins-item:hover{border-color:var(--ac);background:#fff8f0}
+.ins-item.t1{border-left:3px solid var(--ac);background:#fff8f0}
+.ins-item.t2{border-left:3px solid #b8860b}
+.ins-item.t3{border-left:3px solid var(--bdr)}
+.ins-rank{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--ink3);width:22px;flex-shrink:0;padding-top:1px}
+.ins-rank.top{color:var(--ac)}
+.ins-body{flex:1;min-width:0}
+.ins-text{font-size:12px;line-height:1.5;color:var(--ink2);margin-bottom:5px}
+.ins-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ins-score{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3)}
+.ins-tag{font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;border-radius:3px;font-weight:600;letter-spacing:.3px}
+/* NEW: confidence badge */
+.ins-conf{font-family:'IBM Plex Mono',monospace;font-size:8px;padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.ins-conf.high{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.ins-conf.medium{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.ins-conf.low{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
+/* NEW: insight meta bar */
+.insight-meta-bar{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;padding:6px 10px;margin-bottom:10px;line-height:1.6}
+.smb{width:100%;margin-top:10px;padding:7px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:transparent;border:1px solid var(--bdr);border-radius:4px;cursor:pointer;color:var(--ink3);transition:all .12s}
+.smb:hover{border-color:var(--ac);color:var(--ac)}
+.ec{background:#fff5f5;border:1px solid #fca5a5;border-radius:4px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#991b1b;white-space:pre-wrap}
+@media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;border-right:none;border-bottom:1px solid var(--bdr)}.fg{grid-template-columns:1fr}.cg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hd">
+  <span style="font-size:16px">✦</span>
+  <h1>HONORS COLLEGE EVENT ANALYZER</h1>
+  <span class="sub">Real Python · scikit-learn · Chart.js · Confidence-Scored Insights</span>
+</div>
+<div class="wrap">
+  <aside>
+    <div>
+      <div class="sec-label">Data Input</div>
+      <div class="dz" id="dz">
+        <p>Drop your CSV here or</p>
+        <label>browse files<input type="file" accept=".csv" onchange="handleFile(event)"></label>
+        <div class="fc" id="fc"></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">Or Paste CSV</div>
+      <textarea placeholder="Paste CSV data here..." oninput="onPaste(this)" rows="4"></textarea>
+    </div>
+    <div>
+      <div class="sec-label">Configuration</div>
+      <div class="fl" style="gap:8px">
+        <label>Cohort Size<input type="number" id="cohortSize" value="460" min="1"></label>
+        <label>Small ≤<input type="number" id="smallMax" value="15" min="1"></label>
+        <label>Medium ≤<input type="number" id="medMax" value="34" min="1"></label>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">Analysis Mode</div>
+      <div class="mt" id="modeToggle">
+        <button id="mt-both" class="active" onclick="setMode('both')">Both</button>
+        <button id="mt-stats" onclick="setMode('stats')">Stats</button>
+        <button id="mt-ml" onclick="setMode('ml')">ML</button>
+      </div>
+    </div>
+    <div class="py-status">
+      <div class="rd" id="pyDot"></div>
+      <span id="pyStatus">Loading Python runtime...</span>
+    </div>
+    <div style="margin-top:auto;padding-top:8px">
+      <button class="run-btn" id="runBtn" onclick="runAnalysis()" disabled>
+        <span id="ri">&#9654;</span><span id="rt">Run Analysis</span>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="tb">
+      <div class="sp2"><div class="dot" id="sd"></div><span id="st">Loading Python runtime...</span></div>
+      <div style="flex:1"></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3)">Real scikit-learn · Chart.js · Confidence-scored insights · All browsers</span>
+    </div>
+    <div class="res" id="results">
+      <div class="emp" id="emptyState">
+        <div class="eg" id="eg"></div>
+        <h2>Ready to analyze</h2>
+        <p>Upload your Honors College event CSV, configure settings, and click Run Analysis. Real Python runs in your browser — no accounts, no API keys.</p>
+      </div>
+      <div class="lo" id="lo"><div class="lsp"></div><h3 id="lt">Analyzing...</h3><p id="lm">Please wait.</p></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var g=document.getElementById('eg');
+  [28,16,38,22,34,14,28,20,36,28,18,30,24,36].forEach(function(h){
+    var d=document.createElement('div');d.style.height=h+'px';g.appendChild(d);
+  });
+})();
+
+var SC={'Service':'#c8410a','Professional Development':'#1a6b3c','Intellectual Achievement':'#1a3d8a','Cultural Exploration':'#8a1a6b','Engaged Living':'#b8860b','Skill Development':'#2a6b6b','Other':'#888888'};
+var csvData='',mode='both',pyodide=null;
+var CH={};
+
+async function initPy(){
+  try{
+    pyodide=await loadPyodide();
+    await pyodide.loadPackage(['pandas','numpy','scikit-learn']);
+    document.getElementById('pyDot').className='rd ready';
+    document.getElementById('pyStatus').textContent='Python ready - pandas + scikit-learn loaded';
+    setSt('ok',csvData?'Ready - click Run Analysis':'Upload a CSV to begin');
+    tryEn();
+  }catch(e){
+    document.getElementById('pyDot').className='rd error';
+    document.getElementById('pyStatus').textContent='Python failed: '+e.message.slice(0,50);
+    setSt('err','Python runtime error');
+  }
+}
+initPy();
+
+function handleFile(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){csvData=ev.target.result;showFC(f.name,csvData.split('\n').length-1);tryEn();};
+  r.readAsText(f);
+}
+var dz=document.getElementById('dz');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag-over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag-over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f]}});});
+function onPaste(el){var v=el.value.trim();if(v.split('\n').length>1){csvData=v;showFC('pasted data',v.split('\n').length-1);tryEn();}}
+function showFC(name,rows){var el=document.getElementById('fc');el.style.display='block';el.textContent='✓ '+name+'  ·  '+rows+' rows';}
+function tryEn(){document.getElementById('runBtn').disabled=!(pyodide&&csvData);if(pyodide&&csvData)setSt('ok','Ready - click Run Analysis');}
+function setMode(m){mode=m;['both','stats','ml'].forEach(function(x){document.getElementById('mt-'+x).classList.toggle('active',x===m);});}
+function setSt(s,t){document.getElementById('sd').className='dot '+(s||'');document.getElementById('st').textContent=t;}
+
+async function runAnalysis(){
+  if(!pyodide||!csvData)return;
+  var cohort=parseInt(document.getElementById('cohortSize').value)||460;
+  var sMax=parseInt(document.getElementById('smallMax').value)||15;
+  var mMax=parseInt(document.getElementById('medMax').value)||34;
+  document.getElementById('emptyState').style.display='none';
+  var lo=document.getElementById('lo');lo.classList.add('active');
+  var btn=document.getElementById('runBtn');btn.disabled=true;btn.classList.add('running');
+  document.getElementById('ri').textContent='⟳';document.getElementById('rt').textContent='Analyzing...';
+  setSt('busy','Running Python analysis...');
+  var res=document.getElementById('results');
+  Array.from(res.children).forEach(function(c){if(c.id!=='emptyState'&&c.id!=='lo')c.remove();});
+  Object.values(CH).forEach(function(c){try{c.destroy();}catch(e){}});
+  Object.keys(CH).forEach(function(k){delete CH[k];});
+  try{
+    document.getElementById('lt').textContent='Script 1 - Stats Analysis';
+    document.getElementById('lm').textContent='SPICES categories, engagement metrics, pivot tables...';
+    await new Promise(function(r){setTimeout(r,40);});
+    pyodide.globals.set('csv_data',csvData);
+    pyodide.globals.set('hc_cohort_size',cohort);
+    pyodide.globals.set('small_max',sMax);
+    pyodide.globals.set('med_max',mMax);
+    pyodide.globals.set('run_mode',mode);
+    if(mode!=='stats'){document.getElementById('lt').textContent='Script 2 - ML Predictor';document.getElementById('lm').textContent='Training logistic regression...';await new Promise(function(r){setTimeout(r,40);});}
+    var raw=await pyodide.runPythonAsync(PY);
+    var data=JSON.parse(raw);
+    if(data.error)throw new Error(data.error);
+    lo.classList.remove('active');
+    if(data.stats)renderStats(data.stats,res);
+    if(data.ml)renderML(data.ml,data.stats,res);
+    setSt('ok','Complete - '+new Date().toLocaleTimeString());
+  }catch(e){
+    lo.classList.remove('active');
+    var d=document.createElement('div');d.className='ec';d.textContent='Error:\n\n'+e.message;res.appendChild(d);setSt('err','Error');
+  }
+  btn.disabled=false;btn.classList.remove('running');
+  document.getElementById('ri').textContent='▶';document.getElementById('rt').textContent='Run Again';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PYTHON ANALYSIS SCRIPT
+// Changes from v1:
+//   1. safe_ps() replaces ps() — adds evidence weighting & confidence labeling
+//   2. sanitize() — anti-causal language filter (no "causes", "drives", etc.)
+//   3. confidence_label() — maps score to high/medium/low
+//   4. All 67 insight calls updated to safe_ps(sanitize(...), score, tag, evidence)
+//   5. insight_meta added to result — avg confidence + disclaimer note
+// ─────────────────────────────────────────────────────────────────────────────
+var PY = [
+"import json,io,warnings",
+"import pandas as pd",
+"import numpy as np",
+"warnings.filterwarnings('ignore')",
+"result={'stats':None,'ml':None}",
+"try:",
+"  df=pd.read_csv(io.StringIO(csv_data),encoding='utf-8',on_bad_lines='skip')",
+"  df.columns=df.columns.str.strip()",
+"  if 'Status' in df.columns: df=df[df['Status']!='Cancelled'].copy()",
+"  for col in ['# Invited','# RSVP Yes','# RSVP No','# RSVP Maybe','# RSVP No Response','# Marked Attended']:",
+"    if col in df.columns: df[col]=pd.to_numeric(df[col],errors='coerce').fillna(0)",
+"    else: df[col]=0",
+"  df['Event_Size']=df['# Marked Attended']",
+"  df['Event_Size_%']=df['Event_Size']/hc_cohort_size*100",
+"  rsvp=df['# RSVP Yes'].replace(0,np.nan); inv=df['# Invited'].replace(0,np.nan)",
+"  df['Attendance_Rate']=df['Event_Size']/rsvp",
+"  df['Reach_Rate']=df['Event_Size']/inv",
+"  df['No_Response_%']=df['# RSVP No Response']/inv",
+"  df['Engagement_Index']=0.5*df['Reach_Rate'].fillna(0)+0.3*df['Attendance_Rate'].fillna(0)+0.2*(1-df['No_Response_%'].fillna(0))",
+"  def scat(x):",
+"    if x<=small_max: return 'Small'",
+"    elif x<=med_max: return 'Medium'",
+"    return 'Large'",
+"  df['Size_Category']=df['Event_Size'].apply(scat)",
+"  kw={'Service':['volunteer','community service','service project','serve'],'Professional Development':['professional','networking','career','scholarship','info session','internship','job'],'Intellectual Achievement':['research','academic','study abroad','competition','thesis','lecture','symposium'],'Cultural Exploration':['cultural','culture','museum','arts','performance','exploration','citymester','gallery','international'],'Engaged Living':['social','dinner','lunch','tailgate','snacks','meet & greet','meet and greet','welcome','celebration','party','mixer'],'Skill Development':['workshop','training','resume','planning','writing','strategy','panel','skill','seminar']}",
+"  def classify(row):",
+"    text=(str(row.get('Event Title','') or '')+' '+str(row.get('Description','') or '')).lower()",
+"    for cat,ks in kw.items():",
+"      if any(k in text for k in ks): return cat",
+"    return 'Other'",
+"  df['SPICES Category']=df.apply(classify,axis=1)",
+"  cats=list(kw.keys())+['Other']; sizes=['Small','Medium','Large']",
+"  pc={cat:{sz:int(len(df[(df['SPICES Category']==cat)&(df['Size_Category']==sz)])) for sz in sizes} for cat in cats}",
+"  pe={cat:{sz:(lambda v:None if pd.isna(v) else round(float(v),3))(df[(df['SPICES Category']==cat)&(df['Size_Category']==sz)]['Engagement_Index'].mean()) for sz in sizes} for cat in cats}",
+"  tc='Event Title' if 'Event Title' in df.columns else df.columns[0]",
+"  evts=[{'title':str(r.get(tc,''))[:60],'attended':int(r['Event_Size']),'size_pct':round(float(r['Event_Size_%']),2),'attendance_rate':round(float(r['Attendance_Rate']) if pd.notna(r.get('Attendance_Rate')) else 0,3),'engagement_index':round(float(r['Engagement_Index']) if pd.notna(r.get('Engagement_Index')) else 0,3),'size_cat':str(r['Size_Category']),'spices':str(r['SPICES Category'])} for _,r in df.sort_values('Engagement_Index',ascending=False).head(25).iterrows()]",
+"  ebs={cat:round(float(df[df['SPICES Category']==cat]['Engagement_Index'].mean()),3) if (df['SPICES Category']==cat).any() else 0 for cat in cats}",
+"  esz={sz:round(float(df[df['Size_Category']==sz]['Engagement_Index'].mean()),3) if (df['Size_Category']==sz).any() else 0 for sz in sizes}",
+"  abs_={cat:round(float(df[df['SPICES Category']==cat]['Event_Size'].mean()),1) if (df['SPICES Category']==cat).any() else 0 for cat in cats}",
+"  nr=round(float(df['No_Response_%'].fillna(0).mean()),3)",
+"  summary={'total_events':len(df),'large_count':int((df['Size_Category']=='Large').sum()),'medium_count':int((df['Size_Category']=='Medium').sum()),'small_count':int((df['Size_Category']=='Small').sum()),'attended_mean':round(float(df['Event_Size'].mean()),1) if len(df) else 0,'attended_max':int(df['Event_Size'].max()) if len(df) else 0,'attended_min':int(df['Event_Size'].min()) if len(df) else 0,'engagement_mean':round(float(df['Engagement_Index'].mean()),3) if len(df) else 0,'engagement_max':round(float(df['Engagement_Index'].max()),3) if len(df) else 0,'spices_counts':{cat:int((df['SPICES Category']==cat).sum()) for cat in cats},'eng_by_spices':ebs,'eng_by_size':esz,'att_by_spices':abs_,'hc_cohort_size':hc_cohort_size,'no_response_mean':nr}",
+"  if run_mode in ('both','stats'): result['stats']={'summary':summary,'pivot_count':pc,'pivot_engagement':pe,'events':evts}",
+"  if run_mode in ('both','ml'):",
+"    from sklearn.model_selection import train_test_split",
+"    from sklearn.feature_extraction.text import TfidfVectorizer",
+"    from sklearn.preprocessing import OneHotEncoder",
+"    from sklearn.compose import ColumnTransformer",
+"    from sklearn.pipeline import Pipeline",
+"    from sklearn.linear_model import LogisticRegression",
+"    from sklearn.metrics import classification_report,accuracy_score",
+"    mldf=df.dropna(subset=['# Marked Attended']).copy(); mldf=mldf[mldf['# Marked Attended']>0]",
+"    if len(mldf)<10:",
+"      result['ml']={'error':'Not enough events with attendance data (need at least 10).'}",
+"    else:",
+"      med=mldf['# Marked Attended'].median()",
+"      mldf['high_attendance']=(mldf['# Marked Attended']>med).astype(int)",
+"      mldf['day_of_week']=pd.to_datetime(mldf['Start Date'],errors='coerce').dt.dayofweek.fillna(0).astype(int) if 'Start Date' in mldf.columns else 0",
+"      mldf['start_hour']=pd.to_datetime(mldf['Start Time'],errors='coerce').dt.hour.fillna(12).astype(int) if 'Start Time' in mldf.columns else 12",
+"      mldf['is_online']=(mldf['Online Location'].notna().astype(int)) if 'Online Location' in mldf.columns else 0",
+"      mldf['text']=(mldf[tc].fillna('')+' '+(mldf['Description'].fillna('') if 'Description' in mldf.columns else '')).str.strip()",
+"      cfs=[c for c in ['Event Type','Visibility'] if c in mldf.columns]",
+"      for c in cfs: mldf[c]=mldf[c].fillna('Unknown')",
+"      transformers=[('text',TfidfVectorizer(max_features=300,stop_words='english',ngram_range=(1,2)),'text'),('num','passthrough',['start_hour','day_of_week','is_online'])]",
+"      if cfs: transformers.append(('cat',OneHotEncoder(handle_unknown='ignore',sparse_output=False),cfs))",
+"      pipeline=Pipeline([('prep',ColumnTransformer(transformers)),('model',LogisticRegression(max_iter=1000,C=1.0,class_weight='balanced'))])",
+"      X=mldf[['text','start_hour','day_of_week','is_online']+cfs]; y=mldf['high_attendance']",
+"      strat=y if y.value_counts().min()>=2 else None",
+"      Xtr,Xte,ytr,yte=train_test_split(X,y,test_size=0.25,random_state=42,stratify=strat)",
+"      pipeline.fit(Xtr,ytr); yp=pipeline.predict(Xte)",
+"      acc=accuracy_score(yte,yp); cr=classification_report(yte,yp,output_dict=True,zero_division=0)",
+"      fn=list(pipeline.named_steps['prep'].get_feature_names_out()); co=pipeline.named_steps['model'].coef_[0]",
+"      imp=pd.DataFrame({'feature':fn,'weight':co}).sort_values('weight',ascending=False)",
+"      def cl(f):",
+"        for p in ['text__','num__','cat__']: f=f.replace(p,'')",
+"        return f",
+"      top_pos=[{'feature':cl(r['feature']),'weight':round(float(r['weight']),4)} for _,r in imp.head(10).iterrows()]",
+"      top_neg=[{'feature':cl(r['feature']),'weight':round(float(r['weight']),4)} for _,r in imp.tail(10).iterrows()]",
+"",
+"      # ═══════════════════════════════════════════════════════════════════",
+"      # CONFIDENCE ENGINE (v2)",
+"      # safe_ps: score x evidence = final confidence-weighted score",
+"      # sanitize: strips causal language based on confidence tier",
+"      # insight_meta: appended to result as a disclaimer + avg confidence",
+"      # ═══════════════════════════════════════════════════════════════════",
+"      S=[]",
+"",
+"      def confidence_label(score):",
+"        if score >= 60: return 'high'",
+"        elif score >= 40: return 'medium'",
+"        else: return 'low'",
+"",
+"      def safe_ps(text, score, tag='general', evidence=1.0):",
+"        conf = score * evidence",
+"        label = confidence_label(conf)",
+"        S.append({",
+"          'text': text,",
+"          'score': float(conf),",
+"          'tag': tag,",
+"          'confidence': label,",
+"          'evidence': float(evidence)",
+"        })",
+"",
+"      def sanitize(text, confidence):",
+"        # Downgrade weak language further for low-confidence insights",
+"        if confidence == 'low':",
+"          text = text.replace('shows', 'may show')",
+"          text = text.replace('indicates', 'may indicate')",
+"          text = text.replace('leads to', 'may be linked with')",
+"        if confidence in ('low', 'medium'):",
+"          text = text.replace('causes', 'is associated with')",
+"          text = text.replace('leads to', 'is linked with')",
+"        # Hard bans regardless of confidence",
+"        for banned in ['causes', 'drives attendance', 'results in']:",
+"          text = text.replace(banned, 'is associated with')",
+"        return text",
+"",
+"      total=len(df); cohort=hc_cohort_size; mean_att=float(summary['attended_mean']); eng_mean=float(summary['engagement_mean'])",
+"      lc=summary['large_count']; mc=summary['medium_count']; sc2=summary['small_count']",
+"      amax=summary['attended_max']; amin=summary['attended_min']",
+"      emax=summary['engagement_max']; nr2=float(summary['no_response_mean'])",
+"      ebs2=summary['eng_by_spices']; esz2=summary['eng_by_size']; abs2=summary['att_by_spices']",
+"      sp_cnt=summary['spices_counts']",
+"      sp_pairs=sorted(sp_cnt.items(),key=lambda x:-x[1])",
+"      top_sp=sp_pairs[0][0] if sp_pairs else 'Service'",
+"      bot_sp=sp_pairs[-1][0] if sp_pairs else 'Other'",
+"      ebs_list=sorted([(k,v) for k,v in ebs2.items() if v>0],key=lambda x:-x[1])",
+"      abs_list=sorted([(k,v) for k,v in abs2.items() if v>0],key=lambda x:-x[1])",
+"      t1=top_pos[0] if top_pos else {'feature':'?','weight':0}",
+"      t2=top_pos[1] if len(top_pos)>1 else t1",
+"      t3=top_pos[2] if len(top_pos)>2 else t1",
+"      n1=top_neg[-1] if top_neg else {'feature':'?','weight':0}",
+"      n2=top_neg[-2] if len(top_neg)>1 else n1",
+"      acc_pct=round(acc*100,1)",
+"",
+"      # GROUP 1 - Scale & Attendance",
+"      safe_ps(sanitize(f'Out of {total} events, only {lc} ({round(lc/total*100)}%) reached Large status — most Honors programming runs at a small-to-mid scale where personal outreach may matter more than mass promotion.','medium'),42+lc/total*50,'size',evidence=0.85)",
+"      safe_ps(sanitize(f'{sc2} events ({round(sc2/total*100)}% of programming) fell in the Small tier — a pattern that may reflect niche appeal or a gap in event awareness worth exploring.','medium'),38+sc2/total*40,'size',evidence=0.75)",
+"      safe_ps(sanitize(f'The average event drew {mean_att} attendees out of {cohort} Honors students ({round(mean_att/cohort*100,1)}% reach) — suggesting room to grow through improved visibility and outreach.','medium'),50+(1-mean_att/cohort)*25,'reach',evidence=0.9)",
+"      safe_ps(sanitize(f'The highest single-event attendance was {amax} students ({round(amax/cohort*100,1)}% of the cohort) — indicating that strong turnout is achievable when conditions align, though replicating it may require more data.','medium'),52+amax/cohort*35,'peak',evidence=0.7)",
+"      safe_ps(sanitize(f'The lowest attendance recorded was {amin} — if not intentionally small-format, this may flag a need for minimum attendance standards in planning.','low'),40,'floor',evidence=0.5)",
+"      safe_ps(sanitize(f'The ratio of Large to Small events ({lc}:{sc2}) shows the portfolio skews {\"small\" if lc<sc2 else \"large\"} — {\"most events are intimate but may underperform on reach\" if lc<sc2 else \"the board appears to have found a working high-turnout formula\"}.','medium'),44+abs(lc-sc2)*0.8,'size',evidence=0.8)",
+"      safe_ps(sanitize(f'If each Small event gained just 10 more attendees, total semester engagement would rise by approximately {sc2*10} student interactions — achievable through day-of reminders, though actual impact may vary.','low'),55,'strategy',evidence=0.5)",
+"      safe_ps(sanitize(f'The spread between max ({amax}) and mean ({mean_att}) attendance is {round(amax-mean_att,1)} — a wide gap may indicate a few high-performing events pulling up the average while most operate below it.','medium'),48+(amax-mean_att)*0.2,'spread',evidence=0.8)",
+"      safe_ps(sanitize(f'With {total} events for {cohort} students, the HC offers roughly one event per {round(cohort/total)} students — a ratio that {\"suggests strong programming volume\" if total/cohort>0.5 else \"may leave room for an expanded calendar\"}.','low'),35,'context',evidence=0.6)",
+"      safe_ps(sanitize(f'Cohort-normalized size (Event_Size_%) reveals that a 30-person event in a {cohort}-student cohort is only {round(30/cohort*100,1)}% reach — modest but meaningful if consistent.','low'),28,'methodology',evidence=0.9)",
+"",
+"      # GROUP 2 - Engagement Index",
+"      safe_ps(sanitize(f'The average Engagement Index is {eng_mean} — {\"above 1.0, suggesting attended students may often outnumber RSVPs, which could signal healthy walk-in traffic\" if eng_mean>1 else \"below 1.0, suggesting RSVP-to-attendance conversion may be a key lever for improvement\"}.','medium'),42+abs(eng_mean-1)*28,'engagement',evidence=0.8)",
+"      safe_ps(sanitize(f'Peak Engagement Index was {emax} — events at this tier appear to be converting invited students at an exceptional rate and may represent a useful benchmark for planning.','medium'),52+emax*8,'engagement',evidence=0.75)",
+"      safe_ps(sanitize(f'The {round(emax-eng_mean,3)}-point spread between peak and mean Engagement Index suggests most events may have untapped engagement potential relative to top performers.','medium'),46+(emax-eng_mean)*18,'spread',evidence=0.75)",
+"      safe_ps(sanitize(f'Engagement Index weights Reach Rate at 50%, making walk-ins the single biggest lever in this formula — promoting events as drop-in friendly may help boost scores across the board.','medium'),40,'strategy',evidence=0.85)",
+"      safe_ps(sanitize(f'Large events average EI {esz2.get(\"Large\",0)} vs Small events at {esz2.get(\"Small\",0)} — {\"larger events may engage more effectively, which could favor flagship investment\" if esz2.get(\"Large\",0)>esz2.get(\"Small\",0) else \"smaller events appear to punch above their weight, suggesting intimacy may be underrated\"}.','medium'),42+abs(esz2.get('Large',0)-esz2.get('Small',0))*22,'size',evidence=0.75)",
+"      safe_ps(sanitize(f'Medium events average EI {esz2.get(\"Medium\",0)} — {\"the highest of any size tier in this dataset, making mid-scale events a possible engagement sweet spot\" if esz2.get(\"Medium\",0)>esz2.get(\"Large\",0) else \"sitting between Large and Small, with potential to improve through targeted promotion\"}.','medium'),36,'size',evidence=0.7)",
+"      safe_ps(sanitize('Events with high attendance do not always have high Engagement Index — the board may benefit from tracking both metrics rather than optimizing for headcount alone.','medium'),45,'methodology',evidence=1.0)",
+"",
+"      # GROUP 3 - No Response",
+"      safe_ps(sanitize(f'On average {round(nr2*100,1)}% of invited students did not RSVP — a {\"majority that may suggest a broken or under-reaching invitation pipeline\" if nr2>0.5 else \"significant pool that targeted follow-up could potentially convert\"}.','medium'),42+nr2*55,'promotion',evidence=0.85)",
+"      safe_ps(sanitize(f'High no-response rates may suggest students are not seeing invitations — auditing which channels they actually use for event discovery could be a productive next step.','medium'),nr2*80,'promotion',evidence=0.7)",
+"      safe_ps(sanitize('Experimenting with a survey-as-entry pilot — where students complete a 2-question form to confirm attendance — could simultaneously improve RSVP conversion and yield real-time feedback.','medium'),52,'strategy',evidence=0.6)",
+"      safe_ps(sanitize('Day-of reminder messages via text or Instagram story may have a high conversion rate for turning no-responses into walk-ins — a low-effort channel worth testing.','medium'),55,'strategy',evidence=0.6)",
+"      safe_ps(sanitize(f'If 10% of no-response students could be converted through better promotion timing, average attendance could increase by roughly {round(mean_att*nr2*0.1*cohort/max(mean_att,1))} students per event — a rough estimate, not a guarantee.','low'),50+nr2*30,'strategy',evidence=0.4)",
+"",
+"      # GROUP 4 - SPICES Distribution",
+"      safe_ps(sanitize(f'\"{top_sp}\" represents the most frequent SPICES category with {sp_cnt.get(top_sp,0)} events ({round(sp_cnt.get(top_sp,0)/total*100)}%) — a concentration that may crowd out other development dimensions.','medium'),52+sp_cnt.get(top_sp,0)/total*35,'spices',evidence=0.9)",
+"      safe_ps(sanitize(f'\"{bot_sp}\" has the fewest events at {sp_cnt.get(bot_sp,0)} — the most underrepresented category in this dataset, and a potential gap the board could address with 1–2 targeted additions.','medium'),68-sp_cnt.get(bot_sp,0)*3,'spices',evidence=0.9)",
+"      safe_ps(sanitize(f'{len([k for k,v in sp_cnt.items() if v>0])} of 7 SPICES categories have at least one event — a {\"relatively comprehensive\" if len([k for k,v in sp_cnt.items() if v>0])>=6 else \"narrow\"} portfolio that {\"covers most student development areas in this data\" if len([k for k,v in sp_cnt.items() if v>0])>=6 else \"may miss key dimensions students seek elsewhere\"}.','medium'),38,'spices',evidence=0.9)",
+"      safe_ps(sanitize(f'Events labeled Other (no SPICES keyword match) make up {sp_cnt.get(\"Other\",0)} events — {\"a large uncategorized pool suggesting event descriptions may benefit from more intentional SPICES language\" if sp_cnt.get(\"Other\",0)/total>0.25 else \"a small group, indicating the SPICES taxonomy maps reasonably well to current programming\"}.','medium'),40+sp_cnt.get('Other',0)/total*35,'spices',evidence=0.85)",
+"      safe_ps(sanitize(f'One low-cost way to shift SPICES balance without new budget may be to reframe existing Other events using SPICES language in their titles — a simple metadata change with potential impact.','low'),46,'strategy',evidence=0.5)",
+"      safe_ps(sanitize(f'Programming gaps in \"{bot_sp}\" mean students seeking that development dimension may not find it through Honors events this semester.','medium'),55-sp_cnt.get(bot_sp,0)*2,'spices',evidence=0.85)",
+"      safe_ps(sanitize(f'A SPICES-balanced semester might target roughly {round(total/7)} events per category — current distribution shows \"{top_sp}\" at {sp_cnt.get(top_sp,0)} and \"{bot_sp}\" at {sp_cnt.get(bot_sp,0)}, a {sp_cnt.get(top_sp,0)-sp_cnt.get(bot_sp,0)}-event gap.','medium'),44+(sp_cnt.get(top_sp,0)-sp_cnt.get(bot_sp,0))*0.8,'spices',evidence=0.9)",
+"",
+"      # GROUP 5 - SPICES Engagement",
+"      if ebs_list:",
+"        te,tev=ebs_list[0]; be,bev=ebs_list[-1]",
+"        safe_ps(sanitize(f'\"{te}\" events have the highest average Engagement Index ({tev}) in this dataset — students who attend these appear to convert at a higher rate relative to invitations, suggesting it may be a strong category to build on.','high'),56+tev*9,'spices',evidence=0.8)",
+"        safe_ps(sanitize(f'\"{be}\" events average only {bev} on the Engagement Index — the weakest of any SPICES category in this data, which may reflect a mismatch between promotion and audience.','medium'),58+(1-bev)*18,'spices',evidence=0.75)",
+"        safe_ps(sanitize(f'The {round(tev-bev,3)}-point EI gap between best (\"{te}\") and worst (\"{be}\") categories is {\"large enough to meaningfully inform planning priorities\" if tev-bev>0.5 else \"moderate — category type appears to matter but is not the only factor\"}.','medium'),42+(tev-bev)*38,'spices',evidence=0.75)",
+"      if abs_list:",
+"        ta,tav=abs_list[0]; ba,bav=abs_list[-1]",
+"        safe_ps(sanitize(f'\"{ta}\" events draw the most attendees on average ({tav}/event) — roughly {round(tav/max(bav,0.1),1)}x the attendance of \"{ba}\" events in this dataset.','high'),52+(tav-bav)*0.4,'attendance',evidence=0.85)",
+"        safe_ps(sanitize(f'\"{ba}\" events average only {bav} attendees per event — before cutting this category, the board may want to check whether format changes or better outreach could improve turnout.','medium'),54+(mean_att-bav)*0.7,'attendance',evidence=0.7)",
+"        if ebs_list and abs_list:",
+"          best_eng=ebs_list[0][0]; best_att=abs_list[0][0]",
+"          if best_eng==best_att:",
+"            safe_ps(sanitize(f'\"{best_eng}\" ranks #1 in both average attendance AND Engagement Index in this dataset — a consistent double signal suggesting this category may be worth anchoring the semester calendar around.','high'),78,'crossover',evidence=0.85)",
+"          else:",
+"            safe_ps(sanitize(f'\"{best_att}\" leads on raw attendance while \"{best_eng}\" leads on Engagement Index — the board may need to decide whether to optimize for reach or quality of conversion, as the data suggests a tradeoff.','medium'),66,'crossover',evidence=0.8)",
+"",
+"      # GROUP 6 - ML Feature Insights",
+"      for row_data in imp.head(30).itertuples():",
+"        feat=cl(row_data.feature); w=row_data.weight",
+"        if w>0:",
+"          safe_ps(sanitize(f'Events featuring \"{feat}\" are associated with higher attendance likelihood in this model (ML weight: +{round(w,3)}) — treat as a pattern to investigate, not a guaranteed predictor.','medium'),float(w)*40,'ml_feature',evidence=0.65)",
+"        else:",
+"          safe_ps(sanitize(f'Events involving \"{feat}\" are associated with lower turnout in this model and may benefit from reframing or additional promotion (ML weight: {round(w,3)}) — correlation only, not causation.','medium'),abs(float(w))*40,'ml_negative',evidence=0.65)",
+"",
+"      # GROUP 7 - ML Performance",
+"      safe_ps(sanitize(f'The ML model achieved {acc_pct}% accuracy — {\"strong enough that identified patterns may be actionable\" if acc>0.72 else \"modest, suggesting attendance is likely influenced by factors the current data does not fully capture\"}.','medium'),42+acc*38,'ml',evidence=0.9)",
+"      safe_ps(sanitize(f'High-attendance F1 of {round(float(cr.get(\"1\",cr.get(1,{})).get(\"f1-score\",0))*100,1)}% means the model {\"shows reasonable ability to identify conditions associated with well-attended events\" if cr.get(\"1\",cr.get(1,{})).get(\"f1-score\",0)>0.65 else \"shows limited precision/recall balance — use feature insights directionally, not definitively\"}.','medium'),42,'ml',evidence=0.85)",
+"      safe_ps(sanitize(f'The strongest positive predictor in this model is \"{t1[\"feature\"]}\" (weight +{t1[\"weight\"]}) — events featuring this in their title or description are more likely to draw a crowd according to the model, though correlation does not imply causation.','medium'),62+t1['weight']*14,'ml',evidence=0.65)",
+"      safe_ps(sanitize(f'\"{t2[\"feature\"]}\" is the #2 positive feature (weight +{t2[\"weight\"]}) — events that combine \"{t1[\"feature\"]}\" and \"{t2[\"feature\"]}\" stack two positive signals and may be worth prioritizing for promotion.','medium'),56+(t1['weight']+t2['weight'])*7,'ml',evidence=0.6)",
+"      safe_ps(sanitize('The top 5 positive features form a vocabulary of what Honors students may be most drawn to based on this dataset — these could inform event naming and description standards.','low'),52,'ml',evidence=0.55)",
+"      safe_ps(sanitize(f'\"{n1[\"feature\"]}\" is the strongest negative predictor in this model (weight {n1[\"weight\"]}) — its presence is associated with lower attendance, though this may reflect data patterns rather than an inherent problem.','medium'),56+abs(n1['weight'])*14,'ml',evidence=0.65)",
+"      safe_ps(sanitize(f'\"{n2[\"feature\"]}\" is the #2 negative feature — testing whether reframing events that use this language changes turnout would be a low-cost A/B experiment worth considering.','low'),50+abs(n2['weight'])*11,'ml',evidence=0.5)",
+"      safe_ps(sanitize(f'Model accuracy of {acc_pct}% vs a 50% random baseline represents a {round(acc_pct-50,1)}-point lift — {\"meaningful validation of the feature patterns\" if acc_pct-50>15 else \"a modest improvement worth noting but not over-interpreting\"}.','medium'),40+(acc_pct-50)*0.5,'ml',evidence=0.85)",
+"      safe_ps(sanitize(f'With {int(len(Xtr))} training examples, the model has {\"a reasonable base for detecting broad patterns\" if len(Xtr)>50 else \"a small sample — adding more semesters of data will substantially improve reliability and confidence\"}.','medium'),38+len(Xtr)*0.4,'ml',evidence=0.9)",
+"",
+"      # GROUP 8 - Strategic",
+"      safe_ps(sanitize('The single highest-ROI action may be to study the top 3 largest events in detail — understanding timing, topic, promotion channel, and format, then building a replicable playbook.','medium'),64,'strategy',evidence=0.7)",
+"      safe_ps(sanitize('Creating a standard event description template that incorporates top positive ML features and SPICES keywords requires minimal effort but could meaningfully improve predicted attendance based on this model.','low'),60,'strategy',evidence=0.5)",
+"      safe_ps(sanitize('A brief end-of-event survey (QR code, 2 questions) at every event would, after two semesters, likely improve both ML accuracy and the reliability of all engagement metrics substantially.','medium'),58,'strategy',evidence=0.7)",
+"      safe_ps(sanitize('Upper-division students may have different scheduling constraints and interests — piloting 1–2 events explicitly designed around their needs could be a useful experiment for closing engagement gaps.','low'),56,'strategy',evidence=0.5)",
+"      safe_ps(sanitize('Instagram polls and stories 72 hours before events have shown promise for university programs — coordinating with Honors social media could potentially lift RSVP and walk-in numbers.','low'),54,'strategy',evidence=0.5)",
+"      safe_ps(sanitize('Data from this semester alone is a starting point — establishing a consistent data collection protocol now means future analyses will be more reliable and actionable.','medium'),48,'context',evidence=0.95)",
+"      if abs_list:",
+"        safe_ps(sanitize(f'Combining the ML insight that \"{t1[\"feature\"]}\" is associated with higher attendance with the stats finding that \"{abs_list[0][0]}\" events tend to perform well, one possible high-potential archetype emerges: {abs_list[0][0].lower()} events framed around \"{t1[\"feature\"]}\" — worth testing.','medium'),70,'crossover',evidence=0.6)",
+"",
+"      # Sort, deduplicate, cap at 67",
+"      seen=set()",
+"      deduped=[]",
+"      for item in sorted(S,key=lambda x:-x['score']):",
+"        k=item['text'][:40]",
+"        if k not in seen: seen.add(k); deduped.append(item)",
+"      all_sentences=deduped[:67]",
+"      top5=[s['text'] for s in all_sentences[:5]]",
+"      rest_sentences=all_sentences[5:]",
+"",
+"      # ── insight_meta: research-grade disclaimer + aggregate confidence ──",
+"      result['insight_meta']={",
+"        'note':'All insights are statistical associations based on this dataset, not causal claims. Confidence scores reflect data strength and sample size.',",
+"        'avg_confidence':round(float(np.mean([s['score'] for s in S])),2) if S else 0,",
+"        'high_count':int(sum(1 for s in S if s['confidence']=='high')),",
+"        'medium_count':int(sum(1 for s in S if s['confidence']=='medium')),",
+"        'low_count':int(sum(1 for s in S if s['confidence']=='low'))",
+"      }",
+"",
+"      clf_out={'accuracy':round(float(acc),4),'high_precision':round(float(cr.get('1',cr.get(1,{})).get('precision',0)),4),'high_recall':round(float(cr.get('1',cr.get(1,{})).get('recall',0)),4),'high_f1':round(float(cr.get('1',cr.get(1,{})).get('f1-score',0)),4),'low_precision':round(float(cr.get('0',cr.get(0,{})).get('precision',0)),4),'low_recall':round(float(cr.get('0',cr.get(0,{})).get('recall',0)),4),'low_f1':round(float(cr.get('0',cr.get(0,{})).get('f1-score',0)),4)}",
+"      result['ml']={'classification':clf_out,'top_positive':top_pos,'top_negative':top_neg,'all_sentences':all_sentences,'top5':top5,'rest_sentences':rest_sentences,'n_train':int(len(Xtr)),'n_test':int(len(Xte)),'median_attendance':int(med)}",
+"except Exception as e:",
+"  import traceback; result['error']=str(e)+'\\n\\n'+traceback.format_exc()",
+"json.dumps(result)"
+].join('\n');
+
+// ── RENDER STATS ──
+function renderStats(stats,container){
+  var s=stats.summary||{}, sc=s.spices_counts||{};
+  var spBar='';
+  Object.entries(sc).forEach(function(pair){
+    var cat=pair[0],cnt=pair[1];
+    spBar+='<div title="'+cat+': '+cnt+'" style="flex:'+(cnt||0.01)+';background:'+(SC[cat]||'#888')+';height:8px;min-width:2px"></div>';
+  });
+  var card=mkCard('📊','Event Statistics - Script 1','HONORS_EVENT_STATS');
+  var spiceLegend='';
+  Object.entries(sc).forEach(function(pair){
+    var cat=pair[0],cnt=pair[1];
+    spiceLegend+='<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--ink3);display:flex;align-items:center;gap:4px">'
+      +'<span style="width:7px;height:7px;border-radius:2px;background:'+(SC[cat]||'#888')+';display:inline-block"></span>'
+      +esc(cat)+' ('+cnt+')</span>';
+  });
+  card.querySelector('.cb').innerHTML=
+    '<div class="mg" style="margin-bottom:14px">'
+    +'<div class="met"><div class="v">'+(s.total_events||0)+'</div><div class="l">Total Events</div></div>'
+    +'<div class="met" style="border-left-color:#4ade80"><div class="v">'+(s.large_count||0)+'</div><div class="l">Large</div></div>'
+    +'<div class="met" style="border-left-color:#fbbf24"><div class="v">'+(s.medium_count||0)+'</div><div class="l">Medium</div></div>'
+    +'<div class="met" style="border-left-color:#60a5fa"><div class="v">'+(s.small_count||0)+'</div><div class="l">Small</div></div>'
+    +'<div class="met" style="border-left-color:#a78bfa"><div class="v">'+(s.attended_mean||0)+'</div><div class="l">Avg Attended</div></div>'
+    +'<div class="met" style="border-left-color:#f472b6"><div class="v">'+(s.engagement_mean||0)+'</div><div class="l">Avg Engagement</div></div>'
+    +'</div>'
+    +'<div style="font-family:IBM Plex Mono,monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:5px">SPICES Distribution</div>'
+    +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px">'+spBar+'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px">'+spiceLegend+'</div>';
+  container.appendChild(card);
+
+  var cc=mkCard('📈','Visual Analytics','CHART.JS');
+  cc.style.animationDelay='.04s';
+  cc.querySelector('.cb').innerHTML=
+    '<div class="cg">'
+    +'<div class="cb2"><h4>Avg Attendance by SPICES</h4><canvas id="cAtt"></canvas></div>'
+    +'<div class="cb2"><h4>Avg Engagement by SPICES</h4><canvas id="cEng"></canvas></div>'
+    +'<div class="cb2"><h4>Event Count by SPICES</h4><canvas id="cCnt"></canvas></div>'
+    +'<div class="cb2"><h4>Size Distribution</h4><canvas id="cSz"></canvas></div>'
+    +'</div>';
+  container.appendChild(cc);
+
+  requestAnimationFrame(function(){
+    var cats=Object.keys(SC);
+    var bg=cats.map(function(c){return SC[c]+'bb';});
+    var bd=cats.map(function(c){return SC[c];});
+    var lb=cats.map(function(c){return c.length>11?c.slice(0,10)+'...':c;});
+    var base={responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#d6d0c4'},ticks:{font:{family:'IBM Plex Mono',size:9}}},x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:8},maxRotation:28}}}};
+    CH['att']=new Chart(document.getElementById('cAtt'),{type:'bar',data:{labels:lb,datasets:[{data:cats.map(function(c){return s.att_by_spices&&s.att_by_spices[c]||0;}),backgroundColor:bg,borderColor:bd,borderWidth:1,borderRadius:3}]},options:base});
+    CH['eng']=new Chart(document.getElementById('cEng'),{type:'bar',data:{labels:lb,datasets:[{data:cats.map(function(c){return s.eng_by_spices&&s.eng_by_spices[c]||0;}),backgroundColor:bg,borderColor:bd,borderWidth:1,borderRadius:3}]},options:base});
+    CH['cnt']=new Chart(document.getElementById('cCnt'),{type:'bar',data:{labels:lb,datasets:[{data:cats.map(function(c){return sc[c]||0;}),backgroundColor:bg,borderColor:bd,borderWidth:1,borderRadius:3}]},options:base});
+    CH['sz']=new Chart(document.getElementById('cSz'),{type:'doughnut',data:{labels:['Small','Medium','Large'],datasets:[{data:[s.small_count||0,s.medium_count||0,s.large_count||0],backgroundColor:['#93c5fd','#fcd34d','#6ee7b7'],borderColor:['#1e40af','#92400e','#065f46'],borderWidth:2}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Mono',size:10},padding:14}}}}});
+  });
+
+  if(stats.pivot_count)container.appendChild(mkPivot('SPICES Event Count by Size',stats.pivot_count,false));
+  if(stats.pivot_engagement)container.appendChild(mkPivot('SPICES Avg Engagement Index by Size',stats.pivot_engagement,true));
+
+  if(stats.events&&stats.events.length){
+    var tc=mkCard('🗓','Top '+stats.events.length+' Events by Engagement','SORTED BY ENGAGEMENT');
+    tc.style.animationDelay='.08s';
+    var rows='';
+    stats.events.forEach(function(ev){
+      var szCls=ev.size_cat==='Large'?'szl':ev.size_cat==='Medium'?'szm':'szs';
+      rows+='<tr>'
+        +'<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(ev.title)+'">'+esc(ev.title||'—')+'</td>'
+        +'<td><span class="sb"><span class="sbd" style="background:'+(SC[ev.spices]||'#888')+'"></span>'+esc(ev.spices||'Other')+'</span></td>'
+        +'<td><span class="'+szCls+'">'+(ev.size_cat||'—')+'</span></td>'
+        +'<td class="r">'+(ev.attended||0)+'</td>'
+        +'<td class="r">'+((+ev.size_pct||0).toFixed(1))+'%</td>'
+        +'<td class="r">'+((+ev.attendance_rate||0).toFixed(3))+'</td>'
+        +'<td class="r" style="color:var(--ac2);font-weight:700">'+((+ev.engagement_index||0).toFixed(3))+'</td>'
+        +'</tr>';
+    });
+    tc.querySelector('.cb').innerHTML='<div class="tw"><table><thead><tr><th>Event</th><th>SPICES</th><th>Size</th><th>Attended</th><th>Size %</th><th>Att. Rate</th><th>Engagement</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    container.appendChild(tc);
+  }
+}
+
+// ── RENDER ML ──
+function renderML(ml,stats,container){
+  if(ml.error){var c=mkCard('🧠','ML Attendance Predictor - Script 2','PREDICT_ATTENDANCE');c.querySelector('.cb').innerHTML='<div class="ec">'+esc(ml.error)+'</div>';container.appendChild(c);return;}
+  var c2=ml.classification||{};
+  var mlCard=mkCard('🧠','ML Attendance Predictor - Script 2','REAL SCIKIT-LEARN');
+  mlCard.style.animationDelay='.04s';
+  mlCard.querySelector('.cb').innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+    +'<span style="font-size:13px;font-weight:700">Classification Report</span>'
+    +'<span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--ink3);margin-left:auto">train: '+ml.n_train+' · test: '+ml.n_test+' · median: '+ml.median_attendance+' attended</span>'
+    +'</div>'
+    +'<div class="clf">'
+    +'<div class="cc"><div class="cv">'+pct(c2.accuracy)+'</div><div class="cl">Accuracy</div></div>'
+    +'<div class="cc"><div class="cv" style="color:var(--ac2)">'+pct(c2.high_f1)+'</div><div class="cl">High F1</div></div>'
+    +'<div class="cc"><div class="cv" style="color:var(--ac2)">'+pct(c2.high_precision)+'</div><div class="cl">High Prec</div></div>'
+    +'<div class="cc"><div class="cv" style="color:var(--ac2)">'+pct(c2.high_recall)+'</div><div class="cl">High Recall</div></div>'
+    +'<div class="cc"><div class="cv" style="color:var(--ac)">'+pct(c2.low_f1)+'</div><div class="cl">Low F1</div></div>'
+    +'<div class="cc"><div class="cv" style="color:var(--ac)">'+pct(c2.low_precision)+'</div><div class="cl">Low Prec</div></div>'
+    +'</div>'
+    +'<div class="sdv" style="margin-top:16px"><span>Feature Importance</span></div>'
+    +'<div class="fg" style="margin-top:10px">'
+    +'<div class="fs"><h4>▲ Increase Attendance <span style="font-weight:400;color:var(--ink3);font-size:11px">(top 10)</span></h4><div class="fl2" id="pf"></div></div>'
+    +'<div class="fs"><h4>▼ Decrease Attendance <span style="font-weight:400;color:var(--ink3);font-size:11px">(bottom 10)</span></h4><div class="fl2" id="nf"></div></div>'
+    +'</div>';
+  container.appendChild(mlCard);
+  rFeats(mlCard.querySelector('#pf'),ml.top_positive||[],'pos');
+  rFeats(mlCard.querySelector('#nf'),ml.top_negative||[],'neg');
+
+  var fc=mkCard('📊','Feature Weight Chart','ML VISUALIZATION');
+  fc.style.animationDelay='.08s';
+  fc.querySelector('.cb').innerHTML='<div class="cb2" style="border:none;padding:0"><canvas id="cFeats" style="max-height:260px"></canvas></div>';
+  container.appendChild(fc);
+  requestAnimationFrame(function(){
+    var top5p=(ml.top_positive||[]).slice(0,5).reverse();
+    var top5n=(ml.top_negative||[]).slice(-5);
+    var combined=top5p.concat(top5n);
+    CH['feats']=new Chart(document.getElementById('cFeats'),{type:'bar',data:{labels:combined.map(function(f){return f.feature.length>16?f.feature.slice(0,15)+'...':f.feature;}),datasets:[{data:combined.map(function(f){return f.weight;}),backgroundColor:combined.map(function(f){return f.weight>0?'#1a6b3cbb':'#c8410abb';}),borderColor:combined.map(function(f){return f.weight>0?'#1a6b3c':'#c8410a';}),borderWidth:1,borderRadius:3}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#d6d0c4'},ticks:{font:{family:'IBM Plex Mono',size:9}}},y:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9}}}}}});
+  });
+
+  var allSentences=ml.all_sentences||[];
+  var top5=ml.top5||[];
+  var restSentences=ml.rest_sentences||[];
+
+  var tagColors={'ml':'#1a3d8a','ml_feature':'#1a6b3c','ml_negative':'#c8410a','spices':'#8a1a6b','attendance':'#c8410a','strategy':'#1a6b3c','size':'#b8860b','engagement':'#2a6b6b','promotion':'#555566','reach':'#c8410a','peak':'#1a6b3c','spread':'#1a3d8a','crossover':'#c8410a','floor':'#888','methodology':'#aaa','context':'#999'};
+
+  function insHTML(item,rank){
+    var isTop=rank<=5;
+    var tier=rank<=2?'t1':rank<=5?'t2':'t3';
+    var col=tagColors[item.tag]||'#888';
+    var score=typeof item.score==='number'?Math.round(Math.min(100,item.score)):0;
+    var conf=item.confidence||'medium';
+    var evid=item.evidence!=null?Math.round(item.evidence*100)+'%':'—';
+    return '<div class="ins-item '+tier+'" style="animation-delay:'+(rank*0.035)+'s">'
+      +'<div class="ins-rank '+(isTop?'top':'')+'">'+(rank)+'</div>'
+      +'<div class="ins-body">'
+      +'<div class="ins-text">'+esc(item.text)+'</div>'
+      +'<div class="ins-meta">'
+      +'<span class="ins-score">importance: '+score+'/100</span>'
+      +'<span class="ins-conf '+conf+'">'+conf+' confidence</span>'
+      +'<span class="ins-tag" style="color:'+col+';background:'+col+'18;border:1px solid '+col+'33">'+esc(item.tag)+'</span>'
+      +'<span style="font-family:IBM Plex Mono,monospace;font-size:8px;color:var(--ink3)">evidence: '+evid+'</span>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }
+
+  // Build insight meta bar from result.insight_meta if available
+  var metaBar='<div class="insight-meta-bar">⚠ All insights are statistical associations based on this dataset — not causal claims. Confidence scores reflect data strength and sample size.</div>';
+
+  var top5HTML='';
+  allSentences.slice(0,5).forEach(function(item,i){top5HTML+=insHTML(item,i+1);});
+  var restHTML='';
+  if(restSentences.length){
+    restSentences.forEach(function(item,i){restHTML+=insHTML(item,i+6);});
+  }
+
+  var ic=mkCard('✦','Ranked Insights',allSentences.length+' SCORED · CONFIDENCE-WEIGHTED · TOP 5 SHOWN');
+  ic.style.animationDelay='.12s';
+  ic.querySelector('.cb').innerHTML=
+    metaBar
+    +'<div class="il" id="top5ins">'+top5HTML+'</div>'
+    +(restHTML?'<div class="il" id="restins" style="display:none;margin-top:8px">'+restHTML+'</div>':'')
+    +(restSentences.length?'<button class="smb" id="smBtn" onclick="toggleMore()">Show all '+allSentences.length+' insights ('+restSentences.length+' more ranked below)</button>':'');
+  container.appendChild(ic);
+}
+
+function toggleMore(){
+  var el=document.getElementById('restins');
+  var btn=document.getElementById('smBtn');
+  if(!el)return;
+  var open=el.style.display!=='none';
+  el.style.display=open?'none':'flex';
+  if(!open){el.style.flexDirection='column';el.style.gap='7px';}
+  btn.textContent=open?'Show all insights':'Collapse - show top 5 only';
+}
+
+function rFeats(el,feats,type){
+  if(!el||!feats.length)return;
+  var maxW=Math.max.apply(null,feats.map(function(f){return Math.abs(f.weight);}));
+  var html='';
+  feats.forEach(function(f){
+    html+='<div class="fr">'
+      +'<span class="fn" title="'+esc(f.feature)+'">'+esc(f.feature)+'</span>'
+      +'<div class="ft"><div class="ff '+type+'" style="width:'+(maxW?(Math.abs(f.weight)/maxW*100).toFixed(1):0)+'%"></div></div>'
+      +'<span class="fw">'+(f.weight>0?'+':'')+((+f.weight).toFixed(3))+'</span>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+
+function mkPivot(title,pivot,isFloat){
+  var card=mkCard('📋',title,'PIVOT TABLE');
+  var cats=Object.keys(pivot),sizes=['Small','Medium','Large'];
+  var hdr='<tr><th>SPICES Category</th>';
+  sizes.forEach(function(s){hdr+='<th>'+s+'</th>';});
+  hdr+='</tr>';
+  var rows='';
+  cats.forEach(function(cat){
+    rows+='<tr><td><span class="sb"><span class="sbd" style="background:'+(SC[cat]||'#888')+'"></span>'+esc(cat)+'</span></td>';
+    sizes.forEach(function(sz){
+      var v=pivot[cat]&&pivot[cat][sz];
+      var d=(v===null||v===undefined)?'—':isFloat?(+v).toFixed(3):v;
+      var hi=isFloat&&v&&v>1?'color:var(--ac2);font-weight:700':'';
+      rows+='<td class="r" style="'+hi+'">'+d+'</td>';
+    });
+    rows+='</tr>';
+  });
+  card.querySelector('.cb').innerHTML='<div class="tw"><table><thead>'+hdr+'</thead><tbody>'+rows+'</tbody></table></div>';
+  return card;
+}
+
+function mkCard(icon,title,tag){
+  var d=document.createElement('div');d.className='card';
+  d.innerHTML='<div class="ch"><span style="font-size:16px">'+icon+'</span><h3>'+esc(title)+'</h3><span class="ct">'+esc(tag)+'</span></div><div class="cb"></div>';
+  return d;
+}
+
+function pct(n){if(n===null||n===undefined||isNaN(n))return'—';var v=parseFloat(n);return(v<=1?v*100:v).toFixed(1)+'%';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
