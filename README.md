@@ -1,10 +1,11 @@
 Quick Start (2 minutes)
 
-1. Download and open index.html
+1. Download the zip file from the green github button and open the index.html
+2. It should open a new window in whatever browser you use
 2. Wait until it says “Python ready”
 3. Upload your CSV (Official 2024 csv file in the sample_data folder)
 4. Click “Run Analysis”
-5. Read the top insights
+5. Read the insights
 
 That’s it.
 
