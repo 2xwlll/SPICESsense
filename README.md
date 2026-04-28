@@ -37,47 +37,47 @@ If you're not sure where to start, look here:
 # In Depth Walkthrough for data + Usage:
 
 ## SPICESsense:
-A tool that reads your event attendance data and gives you plain-English insights — no coding required, no accounts, no internet needed after you *load* it.
-
-What is this?
-It's a single file — index.html — that you open in any web browser (Chrome, Firefox, Edge, Safari). It analyzes a CSV file from your Honors College event platform and tells you things like which events performed best, which SPICES categories are overrepresented, and what words in event titles tend to predict higher attendance.
-Everything runs inside your browser. Nothing is uploaded anywhere.
-
-How to open it (from GitHub)
-You do not need to know how to code. You just need to download one file.
-
-Go to the GitHub page for this project and make sure your are on the  <> code tab of all the categories at the top.
-Click on the green code button, and download the zip file
-Open the zip file in your downloads and right click to hit extract.
-You should be able to see all of the github files now in that extracted folder.
-Click on the index.html file to open a new tab in whatever browser you are using.
-On the page that opens, look for a button that says "Download raw file" (it looks like a small download icon, top right of the file preview)
-Click it — your browser will save the file to your Downloads folder
-Find the file in your Downloads folder and double-click it
-It will open in your web browser like a normal webpage
-
-That's it. No installation. No setup.
-
-If the page looks blank or gives a security warning: Right-click the file → Open with → Choose your browser (Chrome/edge work best)
+A tool that reads your event attendance data and gives you plain-English insights — no coding required, no accounts, no internet needed after you *load* it. <br>
+<br>
+What is this?<br>
+It's a single file — index.html — that you open in any web browser (Chrome, Firefox, Edge, Safari). It analyzes a CSV file from your Honors College event platform and tells you things like which events performed best, which SPICES categories are overrepresented, and what words in event titles tend to predict higher attendance.<br>
+Everything runs inside your browser. Nothing is uploaded anywhere.<br>
+<br>
+### How to open it (from GitHub)<br>
+You do not need to know how to code. You just need to download one file.<br>
+<br>
+Go to the GitHub page for this project and make sure your are on the  <> code tab of all the categories at the top.<br>
+Click on the green code button, and download the zip file<br>
+Open the zip file in your downloads and right click to hit extract.<br>
+You should be able to see all of the github files now in that extracted folder.<br>
+Click on the index.html file to open a new tab in whatever browser you are using.<br>
+On the page that opens, look for a button that says "Download raw file" (it looks like a small download icon, top right of the file preview)<br>
+Click it — your browser will save the file to your Downloads folder<br>
+Find the file in your Downloads folder and double-click it <br>
+It will open in your web browser like a normal webpage <br>
+<br>
+That's it. No installation. No setup. <br>
+<br>
+If the page looks blank or gives a security warning: Right-click the file → Open with → Choose your browser (Chrome/edge work best) <br>
 
 
 ## How to use it
-Once it's open in your browser:
+Once it's open in your browser:<br>
 
-Wait about at most 10–20 seconds — you'll see "Python ready" appear in the left panel. This is normal; it's loading a mini Python engine inside your browser.
-Upload your CSV file — click the dotted box that says "Drop your CSV here" and pick your file, or just drag and drop it in. You can also paste CSV text directly.
-Check the settings — on the left side you'll see three numbers:
-
-Cohort Size — how many students are in your Honors cohort (default: 460)
-Small ≤ — how many attendees makes an event "Small" (default: 15)
-Medium ≤ — the upper limit for "Medium" events (default: 34). Anything above this is "Large"
-
-
-Click Run Analysis — results appear on the right
-
-
+Wait about at most 10–20 seconds — you'll see "Python ready" appear in the left panel. This is normal; it's loading a mini Python engine inside your browser.<br>
+Upload your CSV file — click the dotted box that says "Drop your CSV here" and pick your file, or just drag and drop it in. You can also paste CSV text directly.<br>
+Check the settings — on the left side you'll see three numbers:<br>
+<br>
+Cohort Size — how many students are in your Honors cohort (default: 460)<br>
+Small ≤ — how many attendees makes an event "Small" (default: 15)<br>
+Medium ≤ — the upper limit for "Medium" events (default: 34). Anything above this is "Large"<br>
+<br>
+<br>
+Click Run Analysis — results appear on the right<br>
+<br>
+<br>
 ## What CSV file does it need?
-Export your event data from your Honors platform (e.g. Presence, Campus Labs, or similar). The analyzer works best when your CSV has these columns:
+Export your event data from your Honors platform (e.g. Presence, Campus Labs, or similar). The analyzer works best when your CSV has these columns:<br>
 | Column Name           | What it is                         |
 |----------------------|------------------------------------|
 | Event Title          | The name of the event              |
@@ -90,107 +90,107 @@ Export your event data from your Honors platform (e.g. Presence, Campus Labs, or
 | Description          | Event description text             |
 | Status               | Whether the event was cancelled    |
 
-The tool will still work if some columns are missing — it just won't be able to calculate certain things.
-
+The tool will still work if some columns are missing — it just won't be able to calculate certain things.<br>
+<br>
 ## What do the results mean?
-Event Statistics (the first section)
-The six summary numbers at the top:
+Event Statistics (the first section) <br>
+The six summary numbers at the top:<br>
 
-Total Events — how many events are in your CSV (cancelled ones are removed automatically)
-Large / Medium / Small — how many events fell into each size bucket based on your settings
-Avg Attended — on average, how many students came to each event
-Avg Engagement — a score (explained below) that captures how well events converted invitations into attendance
-
-The colored bar shows how your events are split across SPICES categories at a glance.
-
+Total Events — how many events are in your CSV (cancelled ones are removed automatically)<br>
+Large / Medium / Small — how many events fell into each size bucket based on your settings<br>
+Avg Attended — on average, how many students came to each event<br>
+Avg Engagement — a score (explained below) that captures how well events converted invitations into attendance<br>
+<br>
+The colored bar shows how your events are split across SPICES categories at a glance.<br>
+<br>
 ## The Four Charts
-Avg Attendance by SPICES — which category of event (Service, Professional Development, etc.) draws the most people on average
-Avg Engagement by SPICES — which category converts invitations into actual attendance most effectively (not the same as raw headcount)
-Event Count by SPICES — how many events you ran in each category. If one color dominates, your calendar may be unbalanced
-Size Distribution (donut chart) — what proportion of your events were Small, Medium, or Large
+Avg Attendance by SPICES — which category of event (Service, Professional Development, etc.) draws the most people on average<br>
+Avg Engagement by SPICES — which category converts invitations into actual attendance most effectively (not the same as raw headcount)<br>
+Event Count by SPICES — how many events you ran in each category. If one color dominates, your calendar may be unbalanced<br>
+Size Distribution (donut chart) — what proportion of your events were Small, Medium, or Large<br>
 
 ## The Engagement Index — what it actually means
-This is a number the tool calculates for every event. It combines three things:
-
-Reach Rate (50% of the score) — what fraction of invited students actually showed up. Walk-ins count here. This is weighted highest because showing up despite not RSVPing is a strong signal of interest.
-Attendance Rate (30%) — of the people who said they'd come, how many actually did
-Response Rate (20%) — the fewer people who ignored the invite entirely, the better
-
-An Engagement Index above 1.0 means more people showed up than RSVPed yes — good news (lots of 'walk-ins'). Below 1.0 means you're losing people between RSVP and the door.
-
+This is a number the tool calculates for every event. It combines three things:<br>
+<br>
+Reach Rate (50% of the score) — what fraction of invited students actually showed up. Walk-ins count here. This is weighted highest because showing up despite not RSVPing is a strong signal of interest.<br>
+Attendance Rate (30%) — of the people who said they'd come, how many actually did<br>
+Response Rate (20%) — the fewer people who ignored the invite entirely, the better<br>
+<br>
+An Engagement Index above 1.0 means more people showed up than RSVPed yes — good news (lots of 'walk-ins'). Below 1.0 means you're losing people between RSVP and the door.<br>
+<br>
 ## The Pivot Tables
-Two tables that cross SPICES category with event size:
-SPICES Event Count by Size — how many Small / Medium / Large events you had in each category. Useful for spotting if, say, all your Service events are small.
-SPICES Avg Engagement by Size — the average Engagement Index broken down by both category and size. Numbers above 1.0 are highlighted in green. These are your best-performing combinations.
-
+Two tables that cross SPICES category with event size:<br>
+SPICES Event Count by Size — how many Small / Medium / Large events you had in each category. Useful for spotting if, say, all your Service events are small.<br>
+SPICES Avg Engagement by Size — the average Engagement Index broken down by both category and size. Numbers above 1.0 are highlighted in green. These are your best-performing combinations.<br>
+<br>
 ## Top Events Table
-Your 25 highest-scoring events, sorted by Engagement Index. Columns:
-
-Event — the event title
-SPICES — which category it was classified into
-Size — Small, Medium, or Large
-Attended — actual headcount
-Size % — attended ÷ cohort size (e.g. 9.3% means 9.3% of all Honors students came)
-Att. Rate — attended ÷ RSVPed yes (did people who committed actually show?)
-Engagement — the Engagement Index score
-
-
+Your 25 highest-scoring events, sorted by Engagement Index. Columns:<br>
+<br>
+Event — the event title<br>
+SPICES — which category it was classified into<br>
+Size — Small, Medium, or Large<br>
+Attended — actual headcount<br>
+Size % — attended ÷ cohort size (e.g. 9.3% means 9.3% of all Honors students came)<br>
+Att. Rate — attended ÷ RSVPed yes (did people who committed actually show?)<br>
+Engagement — the Engagement Index score<br>
+<br>
+<br>
 ## ML Attendance Predictor (the second section)
-This section uses machine learning — a statistical model trained on your own data — to figure out patterns. It learns from your events and tries to predict which ones will be well-attended.
-You do not need to understand how it works. Here's what the numbers mean:
-  Accuracy — what percentage of the time the model correctly guessed whether an event would be high or low attendance. 70%+ is solid for this kind of data.
-  High F1 / High Prec / High Recall — these measure how reliably the model identifies well-attended events specifically. Higher is better. If these are low, it means the model struggles to distinguish great     events from average ones — usually because the dataset is small.
-  Feature Importance (the bar chart) — this is the most useful part. It shows which words and factors are associated with higher or lower attendance in your data.
+This section uses machine learning — a statistical model trained on your own data — to figure out patterns. It learns from your events and tries to predict which ones will be well-attended.<br>
+You do not need to understand how it works. Here's what the numbers mean:<br>
+  Accuracy — what percentage of the time the model correctly guessed whether an event would be high or low attendance. 70%+ is solid for this kind of data.<br>
+  High F1 / High Prec / High Recall — these measure how reliably the model identifies well-attended events specifically. Higher is better. If these are low, it means the model struggles to distinguish great     events from average ones — usually because the dataset is small.<br>
+  Feature Importance (the bar chart) — this is the most useful part. It shows which words and factors are associated with higher or lower attendance in your data.<br>
 
-  Green bars = things associated with more people coming
-  Red bars = things associated with fewer people coming
-
-These are patterns in your data, not universal rules. Treat them as "things worth investigating" not "guaranteed causes."
-
+  Green bars = things associated with more people coming<br>
+  Red bars = things associated with fewer people coming<br>
+<br>
+These are patterns in your data, not universal rules. Treat them as "things worth investigating" not "guaranteed causes."<br>
+<br>
 ## Ranked Insights
-Up to 67 plain-English observations about your data, ranked by importance. Each one shows:
-
-Importance score — how significant this pattern appears to be (out of 100)
-Confidence badge — green (high), yellow (medium), or gray (low). Low-confidence insights are based on thin data and should be treated as hypotheses, not conclusions.
-Evidence % — how strongly the data supports this specific observation
-Tag — what type of insight it is (size, spices, ml, strategy, etc.)
-
-The top 5 are shown by default. Click "Show all insights" to see the full ranked list.
-
-All insights are statistical associations — patterns observed in your data. They are not proof of cause and effect. A low-confidence insight is still worth reading; it just means you'd want more data before acting on it.
-
+Up to 67 plain-English observations about your data, ranked by importance. Each one shows:<br>
+<br>
+Importance score — how significant this pattern appears to be (out of 100)<br>
+Confidence badge — green (high), yellow (medium), or gray (low). Low-confidence insights are based on thin data and should be treated as hypotheses, not conclusions.<br>
+Evidence % — how strongly the data supports this specific observation<br>
+Tag — what type of insight it is (size, spices, ml, strategy, etc.)<br>
+<br>
+The top 5 are shown by default. Click "Show all insights" to see the full ranked list.<br>
+<br>
+All insights are statistical associations — patterns observed in your data. They are not proof of cause and effect. A low-confidence insight is still worth reading; it just means you'd want more data before acting on it.<br>
+<br>
 
 ## Analysis Mode
-In the left panel, you can choose:
+In the left panel, you can choose:<br>
+<br>
+Both — runs everything (recommended)<br>
+Stats — skips the ML section, faster<br>
+ML — skips the stats section, just the prediction model<br>
+<br>
 
-Both — runs everything (recommended)
-Stats — skips the ML section, faster
-ML — skips the stats section, just the prediction model
 
-
-
-## Common questions
-The page just shows a white screen — Try opening in Chrome. Some browsers block local HTML files by default.
-It's stuck on "Loading Python runtime" — This can take up to 30 seconds on a slow connection. It only needs to load once per session.
-It says "Not enough events" — The ML model needs at least 10 events with attendance data. Stats will still work fine.
-My SPICES categories look wrong — The tool classifies events by scanning the title and description for keywords. If your events have unusual names, some may land in "Other." This is expected — the "Other" count in the insights will flag this.
-Can I share this with someone? — Yes. Just send them the HTML file. They open it the same way — no account needed.
-
+# Common questions
+The page just shows a white screen — Try opening in Chrome. Some browsers block local HTML files by default.<br>
+It's stuck on "Loading Python runtime" — This can take up to 30 seconds on a slow connection. It only needs to load once per session.<br>
+It says "Not enough events" — The ML model needs at least 10 events with attendance data. Stats will still work fine.<br>
+My SPICES categories look wrong — The tool classifies events by scanning the title and description for keywords. If your events have unusual names, some may land in "Other." This is expected — the "Other" count in the insights will flag this.<br>
+Can I share this with someone? — Yes. Just send them the HTML file. They open it the same way — no account needed.<br>
+<br>
 ## Biases
-These insights show patterns from data. **They Do Not Guarantee a Cause**
-A note on what this tool is and isn't
-This tool is designed to help you ask better questions about your programming — not to give you definitive answers. The insights it generates are based on one semester of data, which is a small sample. Patterns that look strong here may not hold next semester.
-Use it to identify things worth investigating: which events to study more carefully, which categories to expand, which promotion strategies to test. The more semesters of data you add over time, the more reliable the patterns become.
+These insights show patterns from data. **They Do Not Guarantee a Cause**<br>
+A note on what this tool is and isn't: <br>
+This tool is designed to help you ask better questions about your programming — not to give you definitive answers. The insights it generates are based on one semester of data, which is a small sample. Patterns that look strong here may not hold next semester.<br>
+Use it to identify things worth investigating: which events to study more carefully, which categories to expand, which promotion strategies to test. The more semesters of data you add over time, the more reliable the patterns become.<br>
+<br>
 
+## CONTACT ME: 
+william.olson@my.utsa.edu <br>
+Or use the issues tab and create a new issue.<br>
+<br>
 
-CONTACT ME: 
-william.olson@my.utsa.edu
-Or use the issues tab and create a new issue.
-
-
-### For Developers/Beyond the Website:
-Disclaimer: I used claude code to help me make the website, as I am not very familiar with .html coding. All python was done by me and maybe cleaned up a little by AI. If you find discrepencies, I apologize.
-
+## For Developers/Beyond the Website:
+Disclaimer: I used claude code to help me make the website, as I am not very familiar with .html coding. All python was done by me and maybe cleaned up a little by AI. If you find discrepencies, I apologize.<br>
+<br>
 ``````Bash
 .
 ├── index.html              # Main tool (everything runs here)
@@ -207,46 +207,46 @@ Disclaimer: I used claude code to help me make the website, as I am not very fam
 ├── README.md
 └── .venv/                  # Local Python environment (optional)
 ``````
+<br>
+How the Code Relates to the Website:<br>
+<br>
+The website (index.html) is a self-contained version of the project.<br>
+<br>
+The core logic comes from the Python scripts in dev/scripts/<br>
+These were adapted into browser-compatible code (via in-browser Python / JS)<br>
+The math, metrics, and transformations are the same<br>
+<br>
+Main scripts:<br>
+<br>
+assign_spices.py → SPICES classification<br>
+honors_event_stats.py → engagement metrics + statistics<br>
+predict_attendance.py → ML modeling (simplified for browser use)<br>
+<br>
+The website version removes complexity to keep it:<br>
+- fast<br>
+- portable<br>
+- offline-capable (once dependencies are installed)<br>
+<br>
+Why Not Use Full scikit-learn in the Website?<br>
+Running a full scikit-learn pipeline in the browser is possible, but:<br>
+- slower startup<br>
+- heavier memory usage<br>
+- more fragile<br>
+- worse user experience<br>
+<br>
+So the website uses a simplified, lightweight version of the model.<br>
+<br>
+If you want to extend it into a full ML app, the Python scripts are your starting point.<br>
+<br>
+Notes on src/ and .venv:<br>
+src/ contains early-stage ideas for a larger application (not currently used)<br>
+.venv/ is included for local development but not required for using the tool<br>
+<br>
+You can safely ignore both unless you plan to expand the project.<br>
 
-How the Code Relates to the Website:
-
-The website (index.html) is a self-contained version of the project.
-
-The core logic comes from the Python scripts in dev/scripts/
-These were adapted into browser-compatible code (via in-browser Python / JS)
-The math, metrics, and transformations are the same
-
-Main scripts:
-
-assign_spices.py → SPICES classification
-honors_event_stats.py → engagement metrics + statistics
-predict_attendance.py → ML modeling (simplified for browser use)
-
-The website version removes complexity to keep it:
-- fast
-- portable
-- offline-capable
-
-Why Not Use Full scikit-learn in the Website?
-Running a full scikit-learn pipeline in the browser is possible, but:
-- slower startup
-- heavier memory usage
-- more fragile
-- worse user experience
-
-So the website uses a simplified, lightweight version of the model.
-
-If you want to extend it into a full ML app, the Python scripts are your starting point.
-
-Notes on src/ and .venv
-src/ contains early-stage ideas for a larger application (not currently used)
-.venv/ is included for local development but not required for using the tool
-
-You can safely ignore both unless you plan to expand the project.
-
-
-
-
+<br>
+<br>
+<br>
 
 
 
