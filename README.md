@@ -1,3 +1,5 @@
+https://www.youtube.com/watch?v=uAhHcVu74n0
+
 Quick Start (2 minutes)
 
 1. Download the zip file from the green github button and open the index.html
@@ -20,7 +22,7 @@ If you're not sure where to start, look here:
 4. Top Events — what worked best
 
 
-## How it works (high-level)
+# How it works (high-level)
 
 1. CSV data is loaded directly in the browser
 2. Events are classified into SPICES categories using keyword matching
@@ -32,7 +34,7 @@ If you're not sure where to start, look here:
 
 
 
-### In Depth Walkthrough for data + Usage:
+# In Depth Walkthrough for data + Usage:
 
 ## SPICESsense:
 A tool that reads your event attendance data and gives you plain-English insights — no coding required, no accounts, no internet needed after you *load* it.
@@ -44,8 +46,11 @@ Everything runs inside your browser. Nothing is uploaded anywhere.
 How to open it (from GitHub)
 You do not need to know how to code. You just need to download one file.
 
-Go to the GitHub page for this project
-Click on the file called index.html
+Go to the GitHub page for this project and make sure your are on the  <> code tab of all the categories at the top.
+Click on the green code button, and download the zip file
+Open the zip file in your downloads and right click to hit extract.
+You should be able to see all of the github files now in that extracted folder.
+Click on the index.html file to open a new tab in whatever browser you are using.
 On the page that opens, look for a button that says "Download raw file" (it looks like a small download icon, top right of the file preview)
 Click it — your browser will save the file to your Downloads folder
 Find the file in your Downloads folder and double-click it
@@ -59,7 +64,7 @@ If the page looks blank or gives a security warning: Right-click the file → Op
 ## How to use it
 Once it's open in your browser:
 
-Wait about 10–20 seconds — you'll see "Python ready" appear in the left panel. This is normal; it's loading a mini Python engine inside your browser.
+Wait about at most 10–20 seconds — you'll see "Python ready" appear in the left panel. This is normal; it's loading a mini Python engine inside your browser.
 Upload your CSV file — click the dotted box that says "Drop your CSV here" and pick your file, or just drag and drop it in. You can also paste CSV text directly.
 Check the settings — on the left side you'll see three numbers:
 
@@ -133,12 +138,12 @@ Engagement — the Engagement Index score
 ## ML Attendance Predictor (the second section)
 This section uses machine learning — a statistical model trained on your own data — to figure out patterns. It learns from your events and tries to predict which ones will be well-attended.
 You do not need to understand how it works. Here's what the numbers mean:
-Accuracy — what percentage of the time the model correctly guessed whether an event would be high or low attendance. 70%+ is solid for this kind of data.
-High F1 / High Prec / High Recall — these measure how reliably the model identifies well-attended events specifically. Higher is better. If these are low, it means the model struggles to distinguish great events from average ones — usually because the dataset is small.
-Feature Importance (the bar chart) — this is the most useful part. It shows which words and factors are associated with higher or lower attendance in your data.
+  Accuracy — what percentage of the time the model correctly guessed whether an event would be high or low attendance. 70%+ is solid for this kind of data.
+  High F1 / High Prec / High Recall — these measure how reliably the model identifies well-attended events specifically. Higher is better. If these are low, it means the model struggles to distinguish great     events from average ones — usually because the dataset is small.
+  Feature Importance (the bar chart) — this is the most useful part. It shows which words and factors are associated with higher or lower attendance in your data.
 
-Green bars = things associated with more people coming
-Red bars = things associated with fewer people coming
+  Green bars = things associated with more people coming
+  Red bars = things associated with fewer people coming
 
 These are patterns in your data, not universal rules. Treat them as "things worth investigating" not "guaranteed causes."
 
@@ -178,10 +183,13 @@ This tool is designed to help you ask better questions about your programming �
 Use it to identify things worth investigating: which events to study more carefully, which categories to expand, which promotion strategies to test. The more semesters of data you add over time, the more reliable the patterns become.
 
 
-
+CONTACT ME: 
+william.olson@my.utsa.edu
+Or use the issues tab and create a new issue.
 
 
 ### For Developers/Beyond the Website:
+Disclaimer: I used claude code to help me make the website, as I am not very familiar with .html coding. All python was done by me and maybe cleaned up a little by AI. If you find discrepencies, I apologize.
 
 ``````Bash
 .
